@@ -57,7 +57,7 @@
       <email>stavros.konstantaras@ams-ix.net</email>
     </address>
   </author>
-  <date month="October" year="2026"/>
+  <date month="November" year="2026"/>
 
   <area>OPS</area>
   <workgroup>grow</workgroup>
@@ -190,7 +190,7 @@
   <section><name>Terminology</name>
     <dl spacing="normal" newline="false">
       <dt>IRR Database:</dt>
-      <dd>A logical collection of IRR objects represented in RPSL. This does not imply any particular storage technology.</dd>
+      <dd>A logical collection of IRR objects represented in RPSL, grouped by the value in their "source" attribute. That value is the name of the IRR Database. No particular storage technology is implied.</dd>
       <dt>Snapshot File:</dt>
       <dd>A file that reflects the complete contents of the IRR objects in an IRR Database at a particular point in time.</dd>
       <dt>Delta File:</dt>
@@ -678,7 +678,7 @@
 
     <section><name>File Format and Validation</name>
       <t>
-        Example Snapshot File:
+        Example Snapshot File, where ␞ (U+241E) represents the record separator control character (U+001E) as specified in <xref target="RFC7464"/>:
       </t>
 <sourcecode type="json"><![CDATA[
 ␞{
@@ -748,7 +748,8 @@
 
     <section><name>File Format and Validation</name>
       <t>
-        Example Delta File:
+        Example Delta File, where ␞ (U+241E) represents the record separator control character (U+001E) as   
+specified in <xref target="RFC7464"/>:
       </t>
 <sourcecode type="json"><![CDATA[
 ␞{
