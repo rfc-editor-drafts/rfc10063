@@ -10,17 +10,17 @@ ISSN: 2070-1721                                                      BSD
                                                                 RIPE NCC
                                                          S. Konstantaras
                                                                   AMS-IX
-                                                            October 2026
+                                                           November 2026
 
 
                Near Real Time Mirroring (NRTM) Version 4
 
 Abstract
 
-   This document specifies a one-way synchronization protocol for
-   Internet Routing Registry (IRR) records called Near Real Time
-   Mirroring version 4 (NRTMv4) in which files are distributed over
-   HTTPS.  The protocol allows instances of IRR database servers to
+   This document specifies Near Real Time Mirroring version 4 (NRTMv4):
+   a one-way synchronization protocol for Internet Routing Registry
+   (IRR) records.  NRTMv4 is based on files that are distributed over
+   HTTPS.  The protocol allows instances of IRR Database servers to
    mirror IRR records, specified in the Routing Policy Specification
    Language (RPSL), between each other.
 
@@ -148,9 +148,7 @@ Table of Contents
    that has a database of IRR objects and makes them available on an
    HTTPS endpoint to allow mirroring by others.  These objects can be
    retrieved by mirror clients, which then load them into their local
-   storage.  The IRR Database has a version in which the mirror server
-   starts at 1 and increments every time it makes a set of changes
-   available.
+   storage.
 
                                Mirror Server
                               +--------------+
@@ -188,7 +186,7 @@ Table of Contents
       generates a new snapshot.
 
    *  Zero or more Delta Files.  These contain the changes between two
-      database versions.
+      Database versions.
 
    The Update Notification File MUST be in the JSON Web Signature
    [RFC7515] format, where the payload is in JSON format [RFC8259].  The
@@ -233,9 +231,10 @@ Table of Contents
 
 3.  Terminology
 
-   IRR Database:  A logical collection of IRR objects represented in the
-      RPSL that is often termed an IRR Database.  This does not imply
-      any particular storage technology.
+   IRR Database:  A logical collection of IRR objects represented in
+      RPSL, grouped by the value in their "source" attribute.  That
+      value is the name of the IRR Database.  No particular storage
+      technology is implied.
 
    Snapshot File:  A file that reflects the complete contents of the IRR
       objects in an IRR Database at a particular point in time.
@@ -287,8 +286,8 @@ Table of Contents
    tools for operators to generate new signing keys to enter into their
    configuration and assist with key rotation.  All configuration
    options SHOULD be clearly named to indicate that they are private
-   keys to reduce the risk of operator error causing accidental
-   exposure.
+   keys.  Clear naming reduces the risk of operator error causing
+   accidental exposure.
 
 4.2.  Snapshot Initialization
 
@@ -323,10 +322,11 @@ Table of Contents
    databases are published from one instance.  For example, a mirror
    server that serves two IRR Databases named EXAMPLE and EXAMPLE-
    NONAUTH will generate two Update Notification Files, referring to two
-   Snapshot Files, and two sets of Delta Files each with contiguous
-   version numbers -- all completely independent of each other, with
-   different session IDs, potentially at different times.  This applies
-   even if the same IRR server instance produces both.
+   Snapshot Files and two sets of Delta Files.  Each set of Delta Files
+   has contiguous version numbers.  The two publications are completely
+   independent of each other, with different session IDs, and may be
+   published at different times.  This applies even if the same IRR
+   server instance produces both.
 
 4.3.  Publishing Updates
 
@@ -384,8 +384,8 @@ Table of Contents
 
    Mirror servers with high object churn are RECOMMENDED to generate new
    Snapshot Files more frequently than the required minimum to limit the
-   length of the delta chain that clients must traverse on
-   initialization or after a gap.  Long delta chains increase
+   length of the Delta chain that clients must traverse on
+   initialization or after a gap.  Long Delta chains increase
    initialization time and resource consumption for mirror clients.
 
 4.3.2.  Snapshot Files
@@ -573,7 +573,7 @@ Table of Contents
    with a bounded total retry duration.  This prevents unnecessary
    Snapshot imports on clients and can prevent clients overwhelming a
    server on transient failures.  Mirror clients SHOULD log retry and
-   recovery events, including the reason to assist operators in
+   recovery events, including the reason, to assist operators in
    diagnosing mirroring failures.
 
    If a file is rejected, the mirror client MUST NOT load any data from
@@ -689,8 +689,8 @@ Table of Contents
      "metadata": {}
    }
 
-   Note: Hash and key values in this example are shortened because of
-   formatting.
+      |  Note: Hash and key values in this example are shortened because
+      |  of formatting.
 
    In this example, the overall version is 4, the snapshot is at version
    3, and deltas are listed for versions 2, 3, and 4.  The deltas at
@@ -705,8 +705,8 @@ Table of Contents
 
    *  The nrtm_version MUST be 4.
 
-   *  The timestamp MUST be an [RFC3339] timestamp with the time-offset
-      set to "Z".
+   *  The timestamp MUST be in the format specified in [RFC3339] with
+      the time-offset set to "Z".
 
    *  The type MUST be "notification".
 
@@ -736,20 +736,19 @@ Table of Contents
       attribute.  The URL must be relative to the path of the Update
       Notification File.  For example, if the Update Notification File
       example above is published on https://example.com/nrtm/update-
-      notification-file.json, the full URL for the referred snapshot is
+      notification-file.jose, the full URL for the referred snapshot is
       https://example.com/nrtm/ca128382-78d9-41d1-8927-1ecef15275be/
-      nrtm-snapshot.2.047595d0fae972fbed0c51b4a41c7a349e0c47bb.json.gz.
-      If the snapshot or delta file was compressed with GZIP, the
-      filename MUST end in ".gz", and the hash MUST match the compressed
-      data.
+      nrtm-snapshot.3.04759.json.gz.  If the snapshot or delta file was
+      compressed with GZIP, the filename MUST end in ".gz", and the hash
+      MUST match the compressed data.
 
    *  The hash attribute in snapshot and delta elements MUST be the
       hexadecimal encoding of the SHA-256 hash of the referenced file.
-      This hash algorithm is fixed and independent of the JWS signing
-      algorithm used for the Update Notification File to verify the
-      integrity of the Snapshot and Delta Files.  The mirror client MUST
-      verify this hash when the file is retrieved and reject the file if
-      the hash does not match.
+      This hash algorithm, used to verify the integrity of the Snapshot
+      and Delta Files, is fixed and independent of the JWS signing
+      algorithm used for the Update Notification File.  The mirror
+      client MUST verify this hash when the file is retrieved and reject
+      the file if the hash does not match.
 
    *  The metadata key MAY be present and is used for metadata produced
       by the server to aid in tracing and debugging.  This can contain
@@ -773,7 +772,7 @@ Table of Contents
       file.jose".
 
    *  Mirror clients MUST implement ES256.  Mirror servers MAY use ES256
-      or other digital signature algorithms from the IANA "JOSE Web
+      or other digital signature algorithms from the IANA "JSON Web
       Signature and Encryption Algorithms" registry [IANA_jose]; the
       algorithm MUST NOT be "none", a MAC algorithm, or Deprecated or
       Prohibited.  It is RECOMMENDED to use ES256 or other Recommended
@@ -808,7 +807,8 @@ Table of Contents
 
 7.3.  File Format and Validation
 
-   Example Snapshot File:
+   Example Snapshot File, where ␞ (U+241E) represents the record
+   separator control character (U+001E) as specified in [RFC7464]:
 
    ␞{
      "nrtm_version": 4,
@@ -820,12 +820,12 @@ Table of Contents
    ␞{"object": "route: 192.0.2.0/24\norigin: AS64500\nsource: EXAMPLE"}
    ␞{"object": "route6: 2001:db8::/32\norigin: AS64500\nsource: EXAMPLE"}
 
-   Note: IRR object texts in this example are shortened because of
-   formatting.
+      |  Note: IRR object texts in this example are shortened because of
+      |  formatting.
 
    The file is in JSON Text Sequences [RFC7464] format and MUST contain
    one or more records (it must contain at least the header).  The first
-   record is the file header, and the following validation rules MUST be
+   record is the file header and the following validation rules MUST be
    observed when creating or parsing a Snapshot File header:
 
    *  The nrtm_version MUST be 4.
@@ -872,7 +872,8 @@ Table of Contents
 
 8.3.  File Format and Validation
 
-   Example Delta File:
+   Example Delta File, where ␞ (U+241E) represents the record separator
+   control character (U+001E) as specified in [RFC7464]:
 
    ␞{
      "nrtm_version": 4,
@@ -896,8 +897,8 @@ Table of Contents
      "object": "route6: 2001:db8::/32\norigin: AS64500\nsource: EXAMPLE"
    }
 
-   Note: IRR object texts in this example are shortened because of
-   formatting.
+      |  Note: IRR object texts in this example are shortened because of
+      |  formatting.
 
    The file is in JSON Text Sequences [RFC7464] format and MUST contain
    two or more records (at least the header and one change).  The first
@@ -917,14 +918,15 @@ Table of Contents
       Update Notification File entry for this delta.
 
    The remaining records (one or more) MUST each contain a JSON object
-   representing a change, which MUST meet the following rules:
+   that represents a change.  The JSON object MUST meet the following
+   rules:
 
-   *  An action attribute, which is either "delete" for object deletions
-      or "add_modify" for additions or modifications.
+   *  It has an "action" attribute, which is either "delete" for object
+      deletions or "add_modify" for additions or modifications.
 
-   *  If action is "delete": an object_class attribute with the RPSL
-      object class name, and a primary_key attribute with the primary
-      key, of the deleted object.  For objects that are listed in
+   *  If action is "delete": It has an "object_class" attribute with the
+      RPSL object class name, and a "primary_key" attribute with the
+      primary key of the deleted object.  For objects that are listed in
       [RFC2622] and [RFC4012], the primary key is the value of the RPSL
       field defined as "class key".  For object classes that define a
       pair of attributes as class key, e.g. route, the values of the
@@ -935,8 +937,8 @@ Table of Contents
       mirror clients MUST use case-insensitive matching against their
       local database.
 
-   *  If action is "add_modify": an object attribute with the RPSL text
-      of the new version of the object.
+   *  If action is "add_modify": It has an "object" attribute with the
+      RPSL text of the new version of the object.
 
 9.  Operational Considerations
 
@@ -1037,7 +1039,7 @@ Table of Contents
       of the Notification File, which will take at most 24 hours.
       Mirror server implementations MAY offer a method to cause the
       Update Notification File to be refreshed earlier, with the
-      new_signing_key included, and thus start the propagation earlier.
+      next_signing_key included, and thus start the propagation earlier.
 
    *  When mirror clients retrieve the Update Notification File next,
       they MUST detect the next_signing_key field and store the key in
@@ -1045,10 +1047,10 @@ Table of Contents
 
    *  After allowing mirror clients time to have seen the new Update
       Notification File with the next_signing_key field, the mirror
-      server operator configures the new key as currently active key and
-      removes the old key.  Any Update Notification File generated after
-      this point MUST be signed with this new key and will not contain a
-      next_signing_key field.
+      server operator configures the new key as the currently active key
+      and removes the old key.  Any Update Notification File generated
+      after this point MUST be signed with this new key and will not
+      contain a next_signing_key field.
 
    *  The RECOMMENDED period between publication of the upcoming key in
       the next_signing_key field and removal of the old key is one week.
@@ -1147,6 +1149,10 @@ Table of Contents
               Security (TLS) and Datagram Transport Layer Security
               (DTLS)", BCP 195, RFC 9325, DOI 10.17487/RFC9325, November
               2022, <https://www.rfc-editor.org/info/rfc9325>.
+
+              Salz, R. and N. Aviram, "New Protocols Using TLS Must
+              Require TLS 1.3", BCP 195, RFC 9852, DOI 10.17487/RFC9852,
+              July 2026, <https://www.rfc-editor.org/info/rfc9852>.
 
    [IANA_jose]
               IANA, "JSON Object Signing and Encryption (JOSE)",
